@@ -1,6 +1,6 @@
 # Cell Automatas
-'''
-Cell Automata.
+
+    Cell Automata.
     
     Usage:
         Conways Game of Life
@@ -28,7 +28,7 @@ Cell Automata.
         <height>   -- Y cell range
         <density>  -- percent chance to spawn a living cell at start, between 0 and 100
         <workers>  -- number of simultaneous ants on the board
-'''
+
 
 ### Conway's Game of Life
 
