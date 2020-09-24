@@ -4,6 +4,7 @@ from os import system, name
 from sys import argv
 
 
+
 def dead_state(width, height):
     return [[0] * width for _ in range(height)]
 
@@ -166,7 +167,7 @@ def render(board):
 def load_file(filename):
     lines = list()
     if '.txt' in filename:
-        with open('./pregens/{}'.format(filename), 'r') as f:
+        with open('./pregens/{}.txt'.format(filename), 'r') as f:
             while True:
                 line = f.readline()
                 if not line:
@@ -244,13 +245,47 @@ def conway(board):
 
 
 if __name__ == '__main__':
-    if len(argv) >= 2:
+    help = """
+    Cell Automata.
+    
+    Usage:
+        Conways Game of Life
+        ====================
+        main.py conway
+        main.py conway <filename>
+        main.py conway <width> <height> <density>
+
+        Langton's Ant
+        =============
+        main.py ant
+        main.py ant <width> <height> <density>
+        main.py ant <width> <height> <density> <workers>
+
+        Brian's Brain
+        =============
+        main.py brain
+        main.py brain <filename>
+        main.py brain <width> <height>
+        main.py brain <width> <height> <density>
+
+    Options:
+        <filename> -- a .txt file located in ./pregens
+        <width>    -- X cell range
+        <height>   -- Y cell range
+        <density>  -- percent chance to spawn a living cell at start, between 0 and 100
+        <workers>  -- number of simultaneous ants on the board
+    """
+    if 'help' in argv:
+        print(help)
+        quit()
+
+    elif len(argv) >= 2:
         if argv[1] == 'conway':
             if len(argv) == 3:
                 board = load_file(argv[2])
                 board = expand_board(board, 50, 25)
-            elif len(argv) == 4:
-                board = random_state(int(argv[2]), int(argv[3]), 50)
+            elif len(argv) == 5:
+                board = random_state(int(argv[2]), int(argv[3]), int(argv[4]))
             else:
                 board = random_state(50, 25, 50)
             conway(board)
@@ -274,8 +309,6 @@ if __name__ == '__main__':
                     ]
             else:
                 board = random_state(50, 25, 50)
-
-
             langton(board, pos)
             
         elif argv[1] == 'brain':
@@ -289,3 +322,6 @@ if __name__ == '__main__':
             else:
                 board = random_state(50, 25, 50)
             brain(board)
+    print(help)
+
+
