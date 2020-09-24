@@ -1,5 +1,6 @@
 # Cell Automatas
 Conway's Game of Life 
+
 Langton's Ant
 
 ![conway-example-1](https://raw.githubusercontent.com/EanNewton/Game-of-Life/master/render/conway0.gif)
