@@ -1,4 +1,4 @@
-from random import choice
+from random import choice, choices
 from time import sleep
 from os import system, name
 from sys import argv
@@ -8,11 +8,19 @@ def dead_state(width, height):
     return [[0] * width for _ in range(height)]
 
 
-def random_state(width, height):
-    return [[choice([0, 1]) for _ in range(width)] for _ in range(height)]
+def random_state(width, height, deadWeight):
+    liveWeight = 100 - deadWeight
+    print(deadWeight, liveWeight)
+
+    board = list()
+    for _ in range(height):
+        row = [choices([0, 1], weights=[deadWeight, liveWeight]) for _ in range(width)]
+        board.append([each for sublist in row for each in sublist])
+
+    return board
 
 
-def next_board_state(board):
+def next_board_state_conway(board):
     newBoard = dead_state(len(board[0]), len(board))
 
     for idxRow, row in enumerate(board, start=0):
@@ -51,6 +59,36 @@ def next_board_state(board):
                 newBoard[idxRow][idxCol] = 1
 
     return newBoard
+
+
+def next_board_state_langton(board, pos):
+    x, y, direction = pos
+
+    if x < 0 or y < 0 or x == len(board[0]) or y == len(board):
+        print('Reached edge of screen.')
+        quit()
+
+    if board[y][x]:
+        direction += 90
+        if direction == 360:
+            direction = 0
+        board[y][x] = 0
+    else:
+        direction -= 90
+        if direction == -90:
+            direction = 270
+        board[y][x] = 1
+    
+    if direction == 0:
+        y -= 1
+    elif direction == 180:
+        y += 1
+    elif direction == 90:
+        x += 1
+    elif direction == 270:
+        x -= 1
+
+    return board, [x, y, direction]
 
 
 def render(board):
@@ -93,15 +131,20 @@ def expand_board(board, width, height):
     return board
 
 
-if __name__ == '__main__':
-    if len(argv) == 2:
-        board = load_file(argv[1])
-        board = expand_board(board, 100, 50)
-    elif len(argv) == 3:
-        board = random_state(int(argv[1]), int(argv[2]))
-    else:
-        board = random_state(100, 50)
-    
+def langton(board, pos):
+    lifespan = 0
+    while True:
+        system('cls' if name == 'nt' else 'clear')
+        banner = render(board)
+        print(banner)
+        print('X = {}\nY = {}\nDir = {}'.format(pos[0], pos[1], pos[2]))
+        print('Cycle:  {}'.format(lifespan + 1))
+        lifespan += 1
+        board, pos = next_board_state_langton(board, pos)
+        sleep(0.05)
+
+
+def conway(board):
     lifespan = 0
     history = [None, None]
     while True:
@@ -115,10 +158,37 @@ if __name__ == '__main__':
         else:
             history[1] = board
         lifespan += 1
-        board = next_board_state(board)
+        board = next_board_state_conway(board)
 
         if board in history:
             print('Reached end of life in {} cycles.'.format(lifespan))
             break
         
         sleep(0.1)
+
+
+if __name__ == '__main__':
+    if len(argv) >= 2:
+        if argv[1] == 'conway':
+            if len(argv) == 3:
+                board = load_file(argv[2])
+                board = expand_board(board, 50, 25)
+            elif len(argv) == 4:
+                board = random_state(int(argv[2]), int(argv[3]), 50)
+            else:
+                board = random_state(50, 25, 50)
+            conway(board)
+
+        elif argv[1] == 'ant':
+            if len(argv) == 5:
+                board = random_state(int(argv[2]), int(argv[3]), int(argv[4]))
+            else:
+                board = random_state(50, 25, 50)
+            pos = [
+                choice(range(1, len(board[0]) - 2)),
+                choice(range(1, len(board) - 2)),  
+                choice([0, 90, 180, 270])
+                ]
+            langton(board, pos)
+            
+    
