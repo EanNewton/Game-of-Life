@@ -3,6 +3,8 @@ Conway's Game of Life
 
 Langton's Ant
 
+Brian's Brain
+
 ![conway-example-1](https://raw.githubusercontent.com/EanNewton/Game-of-Life/master/render/conway0.gif)
 
 ---
@@ -16,3 +18,11 @@ Langton's Ant
 ---
 
 ![langton-example-1](https://raw.githubusercontent.com/EanNewton/Game-of-Life/master/render/ant1.gif)
+
+---
+
+![brain-example-1](https://github.com/EanNewton/Game-of-Life/blob/master/render/brain0.gif)
+
+---
+
+![brain-example-2](https://github.com/EanNewton/Game-of-Life/blob/master/render/brain1.gif)
