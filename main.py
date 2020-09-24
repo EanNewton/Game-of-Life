@@ -61,12 +61,65 @@ def next_board_state_conway(board):
     return newBoard
 
 
+def next_board_state_brain(board):
+    newBoard = dead_state(len(board[0]), len(board))
+
+    for idxRow, row in enumerate(board, start=0):
+        for idxCol, cell in enumerate(row, start=0):
+            neighborCount = 0
+            
+            if idxCol - 1 >=  0 and board[idxRow][idxCol - 1] == 1:
+                neighborCount += 1
+
+            if idxCol + 1 < len(board[idxRow]) and board[idxRow][idxCol + 1] == 1:
+                neighborCount += 1
+
+            if idxRow - 1 >= 0 and board[idxRow - 1][idxCol] == 1:
+                neighborCount += 1
+            
+            if idxRow + 1 < len(board) and board[idxRow + 1][idxCol] == 1:
+                neighborCount += 1
+
+            if idxRow + 1 < len(board) and idxCol + 1 < len(board[idxRow]) and board[idxRow + 1][idxCol + 1] == 1:
+                neighborCount += 1
+                    
+            if idxRow + 1 < len(board) and idxCol - 1 >= 0 and board[idxRow + 1][idxCol - 1] == 1:
+                neighborCount += 1
+
+            if idxRow - 1 >= 0 and idxCol - 1 >= 0 and board[idxRow - 1][idxCol - 1] == 1:
+                neighborCount += 1
+
+            if idxRow - 1 >= 0 and idxCol + 1 < len(board[idxRow]) and board[idxRow - 1][idxCol + 1] == 1:
+                neighborCount += 1
+
+            #Rule 1: Dead cells come alive
+            if not cell and neighborCount == 1:
+                newBoard[idxRow][idxCol] = 1
+            #Rule 2: Livings cells start dying
+            elif cell == 1:
+                newBoard[idxRow][idxCol] = 2
+            #Rule 3: Turn off dying cells
+            elif cell == 2:
+                newBoard[idxRow][idxCol] = 0
+
+    return newBoard
+
+
 def next_board_state_langton(board, pos):
     x, y, direction = pos
 
-    if x < 0 or y < 0 or x == len(board[0]) or y == len(board):
-        print('Reached edge of screen.')
-        quit()
+        #if x < 0 or y < 0 or x == len(board[0]) or y == len(board):
+        #   print('Reached edge of screen.')
+            #quit()
+
+    if x < 0:
+        x = len(board[0]) - 1
+    if y < 0:
+        y = len(board)
+    if x == len(board[0]):
+        x = 0
+    if y == len(board):
+        y = 0
 
     if board[y][x]:
         direction += 90
@@ -78,7 +131,7 @@ def next_board_state_langton(board, pos):
         if direction == -90:
             direction = 270
         board[y][x] = 1
-    
+        
     if direction == 0:
         y -= 1
     elif direction == 180:
@@ -97,8 +150,13 @@ def render(board):
 
     for row in board:
         newRow = '|'
-        for column in row:
-            newRow = '{}{}'.format(newRow, '#' if column else ' ')
+        for cell in row:
+            if cell == 1:
+                newRow = '{}{}'.format(newRow, '#')
+            elif cell == 2:
+                newRow = '{}{}'.format(newRow, '+')
+            else:
+                newRow = '{}{}'.format(newRow, ' ')
         banner = '{}{}|\n'.format(banner, newRow)
 
     banner = '{}{}'.format(banner, edge)
@@ -137,11 +195,29 @@ def langton(board, pos):
         system('cls' if name == 'nt' else 'clear')
         banner = render(board)
         print(banner)
-        print('X = {}\nY = {}\nDir = {}'.format(pos[0], pos[1], pos[2]))
         print('Cycle:  {}'.format(lifespan + 1))
+        
         lifespan += 1
-        board, pos = next_board_state_langton(board, pos)
+        if type(pos[0]) is list:
+            for idx, each in enumerate(pos):
+                board, pos[idx] = next_board_state_langton(board, each)
+        else:
+            board, pos = next_board_state_langton(board, pos)
         sleep(0.05)
+
+
+def brain(board):
+    lifespan = 0
+    while True:
+        system('cls' if name == 'nt' else 'clear')
+        banner = render(board)
+        print(banner)
+        print('Cycle:  {}'.format(lifespan + 1))
+
+        lifespan += 1
+        board = next_board_state_brain(board)
+
+        sleep(0.5)
 
 
 def conway(board):
@@ -180,15 +256,36 @@ if __name__ == '__main__':
             conway(board)
 
         elif argv[1] == 'ant':
-            if len(argv) == 5:
+            if len(argv) == 6:
+                board = random_state(int(argv[2]), int(argv[3]), int(argv[4]))
+                pos = list()
+                for _ in range(int(argv[5])):
+                    pos.append([
+                        choice(range(1, len(board[0]) - 2)),
+                        choice(range(1, len(board) - 2)),  
+                        choice([0, 90, 180, 270])
+                        ])
+            elif len(argv) == 5:
+                board = random_state(int(argv[2]), int(argv[3]), int(argv[4]))
+                pos = [
+                    choice(range(1, len(board[0]) - 2)),
+                    choice(range(1, len(board) - 2)),  
+                    choice([0, 90, 180, 270])
+                    ]
+            else:
+                board = random_state(50, 25, 50)
+
+
+            langton(board, pos)
+            
+        elif argv[1] == 'brain':
+            if len(argv) == 3:
+                board = load_file(argv[2])
+                board = expand_board(board, 50, 25)
+            elif len(argv) == 4:
+                board = random_state(int(argv[2]), int(argv[3]), 50)
+            elif len(argv) == 5:
                 board = random_state(int(argv[2]), int(argv[3]), int(argv[4]))
             else:
                 board = random_state(50, 25, 50)
-            pos = [
-                choice(range(1, len(board[0]) - 2)),
-                choice(range(1, len(board) - 2)),  
-                choice([0, 90, 180, 270])
-                ]
-            langton(board, pos)
-            
-    
+            brain(board)
